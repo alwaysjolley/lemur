@@ -185,7 +185,7 @@ class VaultDestinationPlugin(DestinationPlugin):
             "type": "str",
             "required": False,
             "validation": "[0-9a-zA-Z.:_-]+",
-            "helpMessage": "Name to bundle certs under, if blank use cn",
+            "helpMessage": "Name to bundle certs under, if blank use CN",
         },
         {
             "name": "bundleChain",
@@ -251,11 +251,6 @@ class VaultDestinationPlugin(DestinationPlugin):
         client = hvac.Client(url=url, token=token)
         client.secrets.kv.default_kv_version = api_version
 
-        if obj_name:
-            path = "{0}/{1}".format(path, obj_name)
-        else:
-            path = "{0}/{1}".format(path, cname)
-
         secret = get_secret(client, mount, path)
         secret["data"][cname] = {}
 
@@ -276,9 +271,14 @@ class VaultDestinationPlugin(DestinationPlugin):
         if isinstance(san_list, list):
             secret["data"][cname]["san"] = san_list
         try:
-            client.secrets.kv.create_or_update_secret(
-                path=path, mount_point=mount, secret=secret["data"]
-            )
+            if obj_name:
+                client.secrets.kv.create_or_update_secret(
+                    path="{0}/{1}".format(path, obj_name), mount_point=mount, secret=secret["data"]
+                )
+            else:
+                client.secrets.kv.create_or_update_secret(
+                    path="{0}/{1}".format(path, cname), mount_point=mount, secret=secret["data"][cname]
+                )
         except ConnectionError as err:
             current_app.logger.exception(
                 "Exception uploading secret to vault: {0}".format(err), exc_info=True
