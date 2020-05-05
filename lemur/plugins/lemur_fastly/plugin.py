@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
 """
 .. module: lemur.plugins.lemur_fastly.plugin
     :platform: Unix
+    :copyright: (c) 2020
     :license: Apache, see LICENCE for more details.
 
     Plugin for uploading certificates and private keys to fastly
@@ -20,25 +20,33 @@ from flask import current_app
 from lemur.common.defaults import common_name
 from lemur.common.utils import parse_certificate
 from lemur.plugins.bases import DestinationPlugin
-#from lemur.extensions import metrics, sentry
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 class FastlyDestinationPlugin(DestinationPlugin):
     """Fastly Destination plugin for Lemur"""
+
     title = "Fastly"
     slug = "fastly-destination"
     description = "Allow for uploading of certificates to Fastly CDN service"
 
     author = "Christopher Jolley"
-    author_url = "https://github.com/alwaysjolley/lemur"
+    author_url = "https://github.com/Netflix/lemur"
 
-    options = []
+    options = [
+        {
+            "name": "fastlyFilter",
+            "type": "str",
+            "value": ".*",
+            "required": False,
+            "validation": ".*",
+            "helpMessage": "Valid regex filter",
+        },
+    ]
 
 
     def __init__(self, *args, **kwargs):
-        """initialize plugin"""
         super(FastlyDestinationPlugin, self).__init__(*args, **kwargs)
 
 
