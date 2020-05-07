@@ -125,7 +125,7 @@ def get_all_private_keys():
                 {
                     "id": each['id'],
                     "name": each['attributes']['name'],
-                    "sha1": each['attribures']['public_key_sha1'],
+                    "sha1": each['attributes']['public_key_sha1'],
                 }
             )
     except Exception as err:
