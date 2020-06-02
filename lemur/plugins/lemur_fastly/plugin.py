@@ -50,7 +50,6 @@ class FastlyDestinationPlugin(DestinationPlugin):
         """
         priv_id = None
         cert_id = None
-        unique = self.get_option("fastlyUnique", options)
         cname = common_name(parse_certificate(body))
         priv_keys = get_all_private_keys()
         cert_keys = get_all_certificates()
@@ -59,7 +58,7 @@ class FastlyDestinationPlugin(DestinationPlugin):
         }
         for each in priv_keys:
             if each['name'] == cname:
-                if each['sha1'] = get_public_key_sha1(private_key):
+                if each['sha1'] == get_public_key_sha1(private_key):
                     priv_id = None
                     break
                 else:
@@ -68,7 +67,7 @@ class FastlyDestinationPlugin(DestinationPlugin):
                         if cert['name'] == cname:
                             cert_id = cert['id']
         if priv_id:
-            new_priv_id = post_private_key(private_key, name=cname)
+            post_private_key(private_key, name=cname)
             new_cert_id = post_certificate(body, cert_chain, name=cname)
             log_data["message"] = f"Certificate updated: ${cname}"
             act_id = get_activation(cert_id)
