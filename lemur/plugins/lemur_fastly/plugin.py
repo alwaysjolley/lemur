@@ -15,6 +15,7 @@ import json
 import inspect
 import hashlib
 import requests
+import time
 from flask import current_app
 
 from lemur.common.defaults import common_name
@@ -50,6 +51,7 @@ class FastlyDestinationPlugin(DestinationPlugin):
         """
         priv_id = None
         cert_id = None
+        name_found = False
         cname = common_name(parse_certificate(body))
         priv_keys = get_all_private_keys()
         cert_keys = get_all_certificates()
@@ -58,6 +60,7 @@ class FastlyDestinationPlugin(DestinationPlugin):
         }
         for each in priv_keys:
             if each['name'] == cname:
+                name_found = True
                 if each['sha1'] == get_public_key_sha1(private_key):
                     priv_id = None
                     break
@@ -66,17 +69,20 @@ class FastlyDestinationPlugin(DestinationPlugin):
                     for cert in cert_keys:
                         if cert['name'] == cname:
                             cert_id = cert['id']
-        if priv_id:
+        if priv_id or not name_found:
             post_private_key(private_key, name=cname)
+            time.sleep(2)
             new_cert_id = post_certificate(body, cert_chain, name=cname)
-            log_data["message"] = f"Certificate updated: ${cname}"
+            log_data["message"] = f"Certificate updated: {cname}"
             act_id = get_activation(cert_id)
             if len(act_id) > 0 and new_cert_id:
                 for each in act_id:
                     patch_activation(each, new_cert_id)
-                    log_data["message"] = f"Certificate updated: ${new_cert_id} activated: ${act_id}"
-            delete_certificate(cert_id)
-            delete_private_key(priv_id)
+                    log_data["message"] = f"Certificate updated: {new_cert_id} activated: {act_id}"
+            if cert_id:
+                delete_certificate(cert_id)
+            if priv_id:
+                delete_private_key(priv_id)
         else:
             log_data["message"] = f"Certificate up to data, no changes made"
         current_app.logger.debug(log_data)
@@ -313,7 +319,7 @@ def post_certificate(cert, chain, name=None):
     log_data = {
         "function": inspect.currentframe().f_code.co_name
     }
-    if name is not None:
+    if name:
         data['data']['attributes']['name'] = name
     try:
         jdata = _post(path, data)
