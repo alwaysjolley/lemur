@@ -35,7 +35,7 @@ def is_valid_domain(domain):
         return False
     if domain[-1] == ".":
         domain = domain[:-1]
-    fqdn_re = re.compile("(?=^.{1,254}$)(^(?:(?!\d+\.|-)[a-zA-Z0-9_\-]{1,63}(?<!-)\.?)+(?:[a-zA-Z]{2,})$)", re.IGNORECASE)
+    fqdn_re = re.compile("^([a-z\d](-*[a-z\d]){1,63})$", re.IGNORECASE)
     return all(fqdn_re.match(d) for d in domain.split("."))
 
 
